@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Quiz App</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --text-color: #333;
+            --hover-color: #2573a7;
+            --correct-color: #2ecc71;
+            --incorrect-color: #e74c3c;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .quiz-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 85%;
+            max-width: 800px;
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        h1, h2 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .flex-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .flex-column {
+            flex-direction: column;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background-color: var(--hover-color);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .hide {
+            display: none;
+        }
+
+        /* HUD */
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hud-prefix {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .hud-main-text {
+            font-size: 1.5rem;
+        }
+
+        #progressBar {
+            width: 200px;
+            height: 1rem;
+            border: 1px solid var(--primary-color);
+            border-radius: 50px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        #progressBarFull {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+        }
+
+        /* Quiz */
+        .choice-container {
+            display: flex;
+            width: 100%;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            background-color: #f1f1f1;
+            transition: all 0.3s;
+        }
+
+        .choice-container:hover {
+            background-color: #e0e0e0;
+            cursor: pointer;
+            transform: translateY(-2px);
+        }
+
+        .choice-prefix {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            border-radius: 5px 0 0 5px;
+            min-width: 3rem;
+            text-align: center;
+        }
+
+        .choice-text {
+            padding: 1rem;
+            width: 100%;
+        }
+
+        .correct {
+            background-color: var(--correct-color);
+        }
+
+        .incorrect {
+            background-color: var(--incorrect-color);
+        }
+
+        /* Timer */
+        #timer-container {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        #timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* Final Screen */
+        #final-score {
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 768px) {
+            .quiz-container {
+                width: 95%;
+                padding: 1rem;
+            }
+            
+            #progressBar {
+                width: 150px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div id="home" class="flex-center flex-column">
+            <h1>Tech Quiz</h1>
+            <button id="start-btn" class="btn">Start Quiz</button>
+        </div>
+        
+        <div id="quiz" class="hide">
+            <div id="hud">
+                <div class="hud-item">
+                    <p id="progressText" class="hud-prefix">Question</p>
+                    <div id="progressBar">
+                        <div id="progressBarFull"></div>
+                    </div>
+                </div>
+                <div class="hud-item">
+                    <p class="hud-prefix">Score</p>
+                    <h1 class="hud-main-text" id="score">0</h1>
+                </div>
+            </div>
+            
+            <div id="timer-container">
+                <p>Time Remaining: <span id="timer">10</span></p>
+            </div>
+            
+            <h2 id="question">What is the answer to this question?</h2>
+            <div class="choice-container">
+                <p class="choice-prefix">A</p>
+                <p class="choice-text" data-number="1">Choice 1</p>
+            </div>
+            <div class="choice-container">
+                <p class="choice-prefix">B</p>
+                <p class="choice-text" data-number="2">Choice 2</p>
+            </div>
+            <div class="choice-container">
+                <p class="choice-prefix">C</p>
+                <p class="choice-text" data-number="3">Choice 3</p>
+            </div>
+            <div class="choice-container">
+                <p class="choice-prefix">D</p>
+                <p class="choice-text" data-number="4">Choice 4</p>
+            </div>
+        </div>
+        
+        <div id="end" class="flex-center flex-column hide">
+            <h1>Quiz Complete!</h1>
+            <h2 id="final-score"></h2>
+            <button id="play-again" class="btn">Play Again</button>
+        </div>
+    </div>
+    
+    <script>
+        // Wait for DOM to be fully loaded before accessing elements
+        document.addEventListener('DOMContentLoaded', function() {
+        
+        // DOM Elements
+        const homeScreen = document.getElementById('home');
+        const quizScreen = document.getElementById('quiz');
+        const endScreen = document.getElementById('end');
+        const startBtn = document.getElementById('start-btn');
+        const playAgainBtn = document.getElementById('play-again');
+        const question = document.getElementById('question');
+        const choices = Array.from(document.getElementsByClassName('choice-text'));
+        const progressText = document.getElementById('progressText');
+        const scoreText = document.getElementById('score');
+        const progressBarFull = document.getElementById('progressBarFull');
+        const finalScore = document.getElementById('final-score');
+        const timerElement = document.getElementById('timer');
+
+        // Quiz variables
+        let currentQuestion = {};
+        let acceptingAnswers = false;
+        let score = 0;
+        let questionCounter = 0;
+        let availableQuestions = [];
+        let timerInterval = null;
+        let timeLeft = 10;
+
+        // Questions array
+        const questions = [
+            {
+                question: "What does USB stand for?",
+                choice1: "Universal Serial Bus",
+                choice2: "United Serial Bus",
+                choice3: "Universal System Bus",
+                choice4: "Unified Serial Bus",
+                answer: 1
+            },
+            {
+                question: "Which company developed the first iPhone?",
+                choice1: "Samsung",
+                choice2: "Nokia",
+                choice3: "Apple",
+                choice4: "Google",
+                answer: 3
+            },
+            {
+                question: "What year was Android first released?",
+                choice1: "2006",
+                choice2: "2007",
+                choice3: "2008",
+                choice4: "2010",
+                answer: 3
+            },
+            {
+                question: "What does CPU stand for?",
+                choice1: "Central Processing Unit",
+                choice2: "Computer Processing Unit",
+                choice3: "Central Processor Unit",
+                choice4: "Core Processing Unit",
+                answer: 1
+            },
+            {
+                question: "Which company makes the Galaxy series of smartphones?",
+                choice1: "Apple",
+                choice2: "Samsung",
+                choice3: "Huawei",
+                choice4: "Google",
+                answer: 2
+            },
+            {
+                question: "What is the main function of RAM in a computer?",
+                choice1: "Store data permanently",
+                choice2: "Process graphics",
+                choice3: "Connect to the internet",
+                choice4: "Temporary memory/storage for active processes",
+                answer: 4
+            },
+            {
+                question: "Name the voice assistant developed by Amazon.",
+                choice1: "Siri",
+                choice2: "Google Assistant",
+                choice3: "Alexa",
+                choice4: "Cortana",
+                answer: 3
+            },
+            {
+                question: "What does OLED stand for in display technology?",
+                choice1: "Organic Light-Emitting Diode",
+                choice2: "Optical Light-Enhanced Display",
+                choice3: "Organic Light-Enhanced Display",
+                choice4: "Optimal Light-Emitting Device",
+                answer: 1
+            },
+            {
+                question: "What's the most used programming language according to recent GitHub stats?",
+                choice1: "Python",
+                choice2: "JavaScript",
+                choice3: "Java",
+                choice4: "C++",
+                answer: 2
+            },
+            {
+                question: "Which company owns GitHub?",
+                choice1: "Google",
+                choice2: "Apple",
+                choice3: "Microsoft",
+                choice4: "Amazon",
+                answer: 3
+            }
+        ];
+
+        // Constants
+        const CORRECT_BONUS = 10;
+        const MAX_QUESTIONS = 10;
+        const TIMER_SECONDS = 10;
+
+        // Start game function
+        function startGame() {
+            questionCounter = 0;
+            score = 0;
+            availableQuestions = [...questions]; // Create a copy of all questions
+            homeScreen.classList.add('hide');
+            quizScreen.classList.remove('hide');
+            scoreText.innerText = score;
+            getNewQuestion();
+        }
+
+        // Start timer function
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = TIMER_SECONDS;
+            timerElement.innerText = timeLeft;
+            timerElement.style.color = 'var(--primary-color)';
+            
+            timerInterval = setInterval(() => {
+                timeLeft -= 1;
+                timerElement.innerText = timeLeft;
+                
+                // Change color when time is running low
+                if (timeLeft <= 3) {
+                    timerElement.style.color = 'var(--incorrect-color)';
+                }
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    // Time's up - show correct answer and move to next question
+                    highlightCorrectAnswer();
+                    setTimeout(() => {
+                        getNewQuestion();
+                    }, 1500);
+                }
+            }, 1000);
+        }
+
+        // Highlight the correct answer when wrong answer is selected or time runs out
+        function highlightCorrectAnswer() {
+            // Find the correct answer and highlight it
+            choices.forEach(choice => {
+                const number = parseInt(choice.dataset['number']);
+                if (number === currentQuestion.answer) {
+                    choice.parentElement.classList.add('correct');
+                }
+            });
+        }
+
+        // Get a new question
+        function getNewQuestion() {
+            clearInterval(timerInterval); // Clear any existing timer
+            
+            if (availableQuestions.length === 0 || questionCounter >= MAX_QUESTIONS) {
+                // End the quiz
+                quizScreen.classList.add('hide');
+                endScreen.classList.remove('hide');
+                finalScore.innerText = `Your Score: ${score}/${MAX_QUESTIONS * CORRECT_BONUS}`;
+                return;
+            }
+            
+            // Reset all styling on choices
+            choices.forEach(choice => {
+                choice.parentElement.classList.remove('correct');
+                choice.parentElement.classList.remove('incorrect');
+            });
+            
+            questionCounter++;
+            
+            // Update progress
+            progressText.innerText =' question {TECH QUESTIONS}';
+            progressBarFull.style.width = '${( TECH QUESTIONS) * 100}%';
+            
+            // Get random question
+            const questionIndex = Math.floor(Math.random() * availableQuestions.length);
+            currentQuestion = availableQuestions[questionIndex];
+            question.innerText = currentQuestion.question;
+            
+            // Populate choices
+            choices.forEach(choice => {
+                const number = choice.dataset['number'];
+                choice.innerText = currentQuestion['choice' + number];
+            });
+            
+            // Remove used question
+            availableQuestions.splice(questionIndex, 1);
+            
+            acceptingAnswers = true;
+            
+            // Start the timer for this question
+            startTimer();
+        }
+
+        // Check answer when choice is clicked
+        choices.forEach(choice => {
+            choice.addEventListener('click', e => {
+                if (!acceptingAnswers) return;
+                
+                acceptingAnswers = false;
+                clearInterval(timerInterval); // Stop the timer
+                
+                const selectedChoice = e.target;
+                const selectedAnswer = parseInt(selectedChoice.dataset['number']);
+                
+                // Check if answer is correct
+                const classToApply = selectedAnswer === currentQuestion.answer ? 'correct' : 'incorrect';
+                
+                // Update score if correct
+                if (classToApply === 'correct') {
+                    incrementScore(CORRECT_BONUS);
+                } else {
+                    // If answer is incorrect, highlight the correct answer
+                    highlightCorrectAnswer();
+                }
+                
+                // Apply styling based on correctness to the selected choice
+                selectedChoice.parentElement.classList.add(classToApply);
+                
+                // Delay before moving to next question
+                setTimeout(() => {
+                    // Remove styling before getting new question
+                    choices.forEach(c => {
+                        c.parentElement.classList.remove('correct');
+                        c.parentElement.classList.remove('incorrect');
+                    });
+                    getNewQuestion();
+                }, 1500);
+            });
+        });
+
+        // Increment score
+        function incrementScore(num) {
+            score += num;
+            scoreText.innerText = score;
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        playAgainBtn.addEventListener('click', () => {
+            endScreen.classList.add('hide');
+            startGame(); // Start a new game directly
+        });
+        
+        // Debug message to console
+        console.log("Enhanced Quiz app initialized successfully");
+        
+    }); // Close the DOMContentLoaded event listener
+    </script>
+</body>
+</html>
